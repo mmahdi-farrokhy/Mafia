@@ -95,6 +95,11 @@ public class ClassicMafia {
         // All players wake up
         allPlayersWakeUp();
 
+        // if number of remaining mafias is greater than or equal to citizens, mafia wins
+        if (mafias.size() > citizens.size() || mafias.size() == citizens.size()) {
+            mafiaWinsTheGame();
+        }
+
         // All players talk for 90 seconds, with a 60 seconds challenge
         String firstSeatPlayerName = "x";
         List<Player> deck = sortDeck(firstSeatPlayerName);
@@ -107,6 +112,7 @@ public class ClassicMafia {
         for (Player player : deck) {
             String input = scanner.nextLine();
             int votes = Integer.parseInt(input);
+            player.setFirstVote(votes);
 
             if (votes >= requiredNumberOfVotes()) {
                 player.defense();
@@ -120,22 +126,55 @@ public class ClassicMafia {
         }
 
         // Revote
-        List<Integer> secondVotes = new ArrayList<>();
         for (Player defendant : defendants) {
             String input = scanner.nextLine();
             int secondVote = Integer.parseInt(input);
-            secondVotes.add(secondVote);
+            defendant.setSecondVotes(secondVote);
         }
 
         if (defendants.size() == 1) {
-            if (secondVotes.get(0) > requiredNumberOfVotes()) {
+            if (defendants.get(0).getSecondVotes() > requiredNumberOfVotes()) {
                 defendants.get(0).exit();
             }
         } else {
-            int maxSecondVote = secondVotes.stream().max(Integer::compareTo).get();
-            secondVotes.indexOf()
-            defendants.stream().max(player -> player.secondVotes())
+            int maxVote = defendants.stream()
+                    .mapToInt(Player::getSecondVotes)
+                    .max()
+                    .getAsInt();
+            List<Player> candidates = defendants.stream()
+                    .filter(defendant -> defendant.getSecondVotes() == maxVote)
+                    .toList();
+
+            if (candidates.size() == 1) {
+                candidates.get(0).exit();
+            } else {
+                Player exitingPlayer = drawDeathLottery(candidates);
+                exitingPlayer.die();
+            }
         }
+
+        // if there is no mafia left in the game, city wins
+        if (mafias.isEmpty()) {
+            cityWinsTheGame();
+        }
+
+        // if number of remaining mafias is greater than or equal to citizens, mafia wins
+        if (mafias.size() > citizens.size() || mafias.size() == citizens.size()) {
+            mafiaWinsTheGame();
+        }
+    }
+
+    private void cityWinsTheGame() {
+        System.out.println("Mafia wins!");
+    }
+
+    private void mafiaWinsTheGame() {
+        System.out.println("Mafia wins!");
+    }
+
+    private Player drawDeathLottery(List<Player> candidates) {
+        int randomIndex = ThreadLocalRandom.current().nextInt(candidates.size());
+        return candidates.get(randomIndex);
     }
 
     private int requiredNumberOfVotes() {

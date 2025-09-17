@@ -11,6 +11,8 @@ public class Player {
     private boolean wasSavedBefore = false;
     private boolean isAlive = true;
     private boolean shouldDefenseToday = false;
+    private int secondVotes = 0;
+    private int firstVotes = 0;
 
     public boolean investigateByDetective() {
         return role instanceof SimpleMafia;
@@ -79,5 +81,17 @@ public class Player {
 
     public void exit() {
         die();
+    }
+
+    public void setSecondVotes(int secondVotes) {
+        this.secondVotes = secondVotes;
+    }
+
+    public int getSecondVotes() {
+        return this.secondVotes;
+    }
+
+    public void setFirstVote(int firstVotes) {
+        this.firstVotes = firstVotes;
     }
 }
