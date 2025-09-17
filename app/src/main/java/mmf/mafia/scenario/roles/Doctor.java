@@ -15,11 +15,11 @@ public class Doctor implements RoleWithAbility {
             player.save();
             return true;
         } else {
-            if (!player.wasSavedBefore()) {
+            if (player.wasSavedBefore()) {
+                return false;
+            } else {
                 player.save();
                 return true;
-            } else {
-                return false;
             }
         }
     }

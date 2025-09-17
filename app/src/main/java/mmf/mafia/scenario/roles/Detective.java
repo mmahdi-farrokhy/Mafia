@@ -11,6 +11,6 @@ public class Detective implements RoleWithAbility {
 
     @Override
     public boolean useAbility(Player player) {
-        return player.isSimpleMafia();
+        return player.investigateByDetective();
     }
 }

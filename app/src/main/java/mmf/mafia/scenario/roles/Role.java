@@ -4,4 +4,7 @@ import mmf.mafia.scenario.Side;
 
 public interface Role {
     abstract Side side();
+
+    void showsLike();
 }
+
