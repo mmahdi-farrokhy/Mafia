@@ -10,6 +10,11 @@ public class Detective implements RoleWithAbility {
     }
 
     @Override
+    public void showsLike() {
+
+    }
+
+    @Override
     public boolean useAbility(Player player) {
         return player.investigateByDetective();
     }

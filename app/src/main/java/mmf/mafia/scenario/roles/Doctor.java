@@ -10,6 +10,11 @@ public class Doctor implements RoleWithAbility {
     }
 
     @Override
+    public void showsLike() {
+
+    }
+
+    @Override
     public boolean useAbility(Player player) {
         if (!player.isDoctor()) {
             player.save();

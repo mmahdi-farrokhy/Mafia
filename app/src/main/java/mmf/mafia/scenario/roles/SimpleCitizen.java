@@ -7,4 +7,9 @@ public class SimpleCitizen implements Role {
     public Side side() {
         return Side.CITY;
     }
+
+    @Override
+    public void showsLike() {
+
+    }
 }

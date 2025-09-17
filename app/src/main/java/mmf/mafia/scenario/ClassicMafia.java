@@ -1,12 +1,24 @@
 package mmf.mafia.scenario;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+
+import mmf.mafia.Shared;
+import mmf.mafia.scenario.roles.Detective;
+import mmf.mafia.scenario.roles.Doctor;
+import mmf.mafia.scenario.roles.Don;
+import mmf.mafia.scenario.roles.SimpleCitizen;
+import mmf.mafia.scenario.roles.SimpleMafia;
 
 public class ClassicMafia {
     public static final int TALK_TURN_TIME = 90;
     private static final int DEFENSE_TIME = 90;
-    private final int MINIMUM_NUMBER_OF_PLAYERS = 5;
-    private final int MAXIMUM_NUMBER_OF_PLAYERS = 12;
+    public static final int MINIMUM_NUMBER_OF_PLAYERS = 5;
+    public static final int MAXIMUM_NUMBER_OF_PLAYERS = 12;
     private final int playersCount;
     private final int citizensCount;
     private final int mafiasCount;
@@ -18,20 +30,18 @@ public class ClassicMafia {
     private Player doctor;
     private final int MAFIA_CONSULT_TIME = 60000;
 
-
     public ClassicMafia(int playersCount) {
-        if (playersCount < MINIMUM_NUMBER_OF_PLAYERS) {
-            throw new IllegalArgumentException("Number of players should be greater than " + MINIMUM_NUMBER_OF_PLAYERS);
+        if (playersCount < MINIMUM_NUMBER_OF_PLAYERS || playersCount > MAXIMUM_NUMBER_OF_PLAYERS) {
+            throw new IllegalArgumentException("Number of players has to be between " + MAXIMUM_NUMBER_OF_PLAYERS + " and " + MAXIMUM_NUMBER_OF_PLAYERS);
         }
-
-        if (playersCount > MAXIMUM_NUMBER_OF_PLAYERS) {
-            throw new IllegalArgumentException("Number of players should be less than " + MAXIMUM_NUMBER_OF_PLAYERS);
-        }
-
 
         this.playersCount = playersCount;
         this.mafiasCount = calculateMafiasCount(playersCount);
         this.citizensCount = this.playersCount - this.mafiasCount;
+
+        Shared.PLAYERS_COUNT = this.playersCount;
+        Shared.MAFIAS_COUNT = this.mafiasCount;
+        Shared.CITIZENS_COUNT = this.citizensCount;
     }
 
     private int calculateMafiasCount(int playersCount) {
@@ -56,9 +66,13 @@ public class ClassicMafia {
         return mafiasCount;
     }
 
-    public void addPlayer(Player player) {
+    public void addPlayer(String playerName) throws Exception {
         if (players.size() < playersCount) {
-            players.add(player);
+            if (players.stream().anyMatch(player1 -> player1.getName().equals(playerName))) {
+                throw new Exception("This player is already added to the deck");
+            } else {
+                players.add(new Player(playerName));
+            }
         } else {
             throw new IllegalArgumentException("All " + playersCount + " players are already added to the deck");
         }
@@ -71,8 +85,8 @@ public class ClassicMafia {
 
         // assign the roles
         assignRoles(players);
-        mafias = players.stream().filter(Player::isMafia).toList();
-        citizens = players.stream().filter(Player::isCitizen).toList();
+        mafias = players.stream().filter(Player::isMafia).collect(Collectors.toList());
+        citizens = players.stream().filter(Player::isCitizen).collect(Collectors.toList());
         don = mafias.stream().filter(Player::isDon).findFirst().get();
         detective = citizens.stream().filter(Player::isDetective).findFirst().get();
         doctor = citizens.stream().filter(Player::isDoctor).findFirst().get();
@@ -120,7 +134,7 @@ public class ClassicMafia {
         }
 
         // If there are any players in defense, they talk for 90 seconds
-        List<Player> defendants = players.stream().filter(Player::shouldDefend).toList();
+        List<Player> defendants = players.stream().filter(Player::shouldDefend).collect(Collectors.toList());
         for (Player defendant : defendants) {
             wait(DEFENSE_TIME);
         }
@@ -143,7 +157,7 @@ public class ClassicMafia {
                     .getAsInt();
             List<Player> candidates = defendants.stream()
                     .filter(defendant -> defendant.getSecondVotes() == maxVote)
-                    .toList();
+                    .collect(Collectors.toList());
 
             if (candidates.size() == 1) {
                 candidates.get(0).exit();
@@ -238,7 +252,7 @@ public class ClassicMafia {
         players.get(0).assignRole(new Don());
         numberOfAssignedRoles++;
 
-        for (int i = 1; i < mafiasCount; i++) {
+        for (int i = numberOfAssignedRoles; i < mafiasCount; i++) {
             players.get(i).assignRole(new SimpleMafia());
             numberOfAssignedRoles++;
         }

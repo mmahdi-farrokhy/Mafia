@@ -1,6 +1,8 @@
 package mmf.mafia.scenario;
 
+import mmf.mafia.scenario.roles.Detective;
 import mmf.mafia.scenario.roles.Doctor;
+import mmf.mafia.scenario.roles.Don;
 import mmf.mafia.scenario.roles.Role;
 import mmf.mafia.scenario.roles.SimpleMafia;
 
@@ -13,6 +15,10 @@ public class Player {
     private boolean shouldDefenseToday = false;
     private int secondVotes = 0;
     private int firstVotes = 0;
+
+    public Player(String name) {
+        this.name = name;
+    }
 
     public boolean investigateByDetective() {
         return role instanceof SimpleMafia;

@@ -1,47 +1,56 @@
 package mmf.mafia;
 
+import android.content.Intent;
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
-import mmf.mafia.databinding.ActivityMainBinding;
+import mmf.mafia.scenario.ClassicMafia;
 
 public class MainActivity extends AppCompatActivity {
-
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    private EditText numPlayersCount;
+    private Button btnStartGame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        setSupportActionBar(binding.toolbar);
-
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAnchorView(R.id.fab)
-                        .setAction("Action", null).show();
-            }
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
         });
+
+        this.btnStartGame = findViewById(R.id.btnStartGame);
     }
 
-    @Override
-    public boolean onSupportNavigateUp() {
-        return false;
+    public void startGame(View view) {
+        this.numPlayersCount = findViewById(R.id.numPlayersCount);
+        int playersCount = Integer.parseInt(numPlayersCount.getText().toString());
+        try {
+            Shared.classicMafia = new ClassicMafia(playersCount);
+            // Start SecondActivity
+            Intent intent = new Intent(MainActivity.this, GamePreparationActivity.class);
+            startActivity(intent);
+
+            // If you want MainActivity to be removed from the back stack
+            // so the user can’t return to it with the back button:
+            finish();
+        } catch (IllegalArgumentException ex) {
+            showMessage("تعداد بازیکنان باید بین " + ClassicMafia.MINIMUM_NUMBER_OF_PLAYERS + " و " + ClassicMafia.MAXIMUM_NUMBER_OF_PLAYERS + " باشد");
+        }
+    }
+
+    private void showMessage(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 }

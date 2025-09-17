@@ -1,11 +1,17 @@
 package mmf.mafia.scenario.roles;
 
+import mmf.mafia.scenario.Player;
 import mmf.mafia.scenario.Side;
 
 public class SimpleMafia implements RoleWithAbility {
     @Override
     public Side side() {
         return Side.MAFIA;
+    }
+
+    @Override
+    public void showsLike() {
+
     }
 
     @Override
