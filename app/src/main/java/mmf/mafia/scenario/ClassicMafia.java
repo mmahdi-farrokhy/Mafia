@@ -8,6 +8,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import mmf.mafia.Shared;
+import mmf.mafia.scenario.exceptions.DuplicatedPlayerException;
+import mmf.mafia.scenario.exceptions.FullDeckException;
 import mmf.mafia.scenario.roles.Detective;
 import mmf.mafia.scenario.roles.Doctor;
 import mmf.mafia.scenario.roles.Don;
@@ -19,7 +21,7 @@ public class ClassicMafia {
     private static final int DEFENSE_TIME = 90;
     public static final int MINIMUM_NUMBER_OF_PLAYERS = 5;
     public static final int MAXIMUM_NUMBER_OF_PLAYERS = 12;
-    private final int playersCount;
+    private final int deckSize;
     private final int citizensCount;
     private final int mafiasCount;
     private final List<Player> players = new ArrayList<>();
@@ -35,11 +37,11 @@ public class ClassicMafia {
             throw new IllegalArgumentException("Number of players has to be between " + MAXIMUM_NUMBER_OF_PLAYERS + " and " + MAXIMUM_NUMBER_OF_PLAYERS);
         }
 
-        this.playersCount = playersCount;
+        this.deckSize = playersCount;
         this.mafiasCount = calculateMafiasCount(playersCount);
-        this.citizensCount = this.playersCount - this.mafiasCount;
+        this.citizensCount = this.deckSize - this.mafiasCount;
 
-        Shared.PLAYERS_COUNT = this.playersCount;
+        Shared.PLAYERS_COUNT = this.deckSize;
         Shared.MAFIAS_COUNT = this.mafiasCount;
         Shared.CITIZENS_COUNT = this.citizensCount;
     }
@@ -66,30 +68,22 @@ public class ClassicMafia {
         return mafiasCount;
     }
 
-    public void addPlayer(String playerName) throws Exception {
-        if (players.size() < playersCount) {
+    public void addPlayer(String playerName) throws DuplicatedPlayerException, FullDeckException {
+        if (players.size() < deckSize) {
             if (players.stream().anyMatch(player1 -> player1.getName().equals(playerName))) {
-                throw new Exception("This player is already added to the deck");
+                throw new DuplicatedPlayerException("This player is already added to the deck");
             } else {
                 players.add(new Player(playerName));
             }
         } else {
-            throw new IllegalArgumentException("All " + playersCount + " players are already added to the deck");
+            throw new FullDeckException("All " + deckSize + " players are already added to the deck");
         }
     }
 
     public void startTheGame() {
-        if (players.size() != playersCount) {
-            throw new RuntimeException("Not all players are added to the deck");
-        }
-
         // assign the roles
-        assignRoles(players);
-        mafias = players.stream().filter(Player::isMafia).collect(Collectors.toList());
-        citizens = players.stream().filter(Player::isCitizen).collect(Collectors.toList());
-        don = mafias.stream().filter(Player::isDon).findFirst().get();
-        detective = citizens.stream().filter(Player::isDetective).findFirst().get();
-        doctor = citizens.stream().filter(Player::isDoctor).findFirst().get();
+        assignRoles();
+        setSpecialRoles();
 
         // all players sleep
         allPlayersSleep();
@@ -178,6 +172,14 @@ public class ClassicMafia {
         }
     }
 
+    public void setSpecialRoles() {
+        mafias = players.stream().filter(Player::isMafia).collect(Collectors.toList());
+        citizens = players.stream().filter(Player::isCitizen).collect(Collectors.toList());
+        don = mafias.stream().filter(Player::isDon).findFirst().get();
+        detective = citizens.stream().filter(Player::isDetective).findFirst().get();
+        doctor = citizens.stream().filter(Player::isDoctor).findFirst().get();
+    }
+
     private void cityWinsTheGame() {
         System.out.println("Mafia wins!");
     }
@@ -203,7 +205,7 @@ public class ClassicMafia {
         }
     }
 
-    private List<Player> sortDeck(String firstSeatPlayerName) {
+    public List<Player> sortDeck(String firstSeatPlayerName) {
         if (players.stream().noneMatch(player -> player.getName().equals(firstSeatPlayerName))) {
             throw new IllegalArgumentException("First player " + firstSeatPlayerName + " does not exist in the deck");
         }
@@ -245,7 +247,7 @@ public class ClassicMafia {
         System.out.println("All players must wake up");
     }
 
-    private void assignRoles(List<Player> players) {
+    public void assignRoles() {
         int numberOfAssignedRoles = 0;
         Collections.shuffle(players);
 
@@ -262,9 +264,29 @@ public class ClassicMafia {
         players.get(numberOfAssignedRoles).assignRole(new Doctor());
         numberOfAssignedRoles++;
 
-        for (int i = numberOfAssignedRoles; i < playersCount; i++) {
+        for (int i = numberOfAssignedRoles; i < deckSize; i++) {
             players.get(i).assignRole(new SimpleCitizen());
             numberOfAssignedRoles++;
         }
+    }
+
+    public boolean allPlayersAreAdded() {
+        return players.size() == deckSize;
+    }
+
+    public int aliveMafiasCount() {
+        return mafias.size();
+    }
+
+    public int aliveCitizensCount() {
+        return citizens.size();
+    }
+
+    public int getDeckSize() {
+        return deckSize;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
     }
 }

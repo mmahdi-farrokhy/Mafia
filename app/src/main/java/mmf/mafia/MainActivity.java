@@ -30,20 +30,16 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        this.btnStartGame = findViewById(R.id.btnStartGame);
+        this.btnStartGame = findViewById(R.id.btnEnterNames);
     }
 
-    public void startGame(View view) {
+    public void enterNames(View view) {
         this.numPlayersCount = findViewById(R.id.numPlayersCount);
         int playersCount = Integer.parseInt(numPlayersCount.getText().toString());
         try {
             Shared.classicMafia = new ClassicMafia(playersCount);
-            // Start SecondActivity
             Intent intent = new Intent(MainActivity.this, GamePreparationActivity.class);
             startActivity(intent);
-
-            // If you want MainActivity to be removed from the back stack
-            // so the user can’t return to it with the back button:
             finish();
         } catch (IllegalArgumentException ex) {
             showMessage("تعداد بازیکنان باید بین " + ClassicMafia.MINIMUM_NUMBER_OF_PLAYERS + " و " + ClassicMafia.MAXIMUM_NUMBER_OF_PLAYERS + " باشد");
